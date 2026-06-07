@@ -23,3 +23,4 @@ console.log(rawReport);
 ```bash
 npm install
 ```
+3. Inject the framework directly into your local agent pipelines or offline terminal interfaces.
