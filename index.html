@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axiom Nomad-Scout — Local Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght=0,400;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- VARIABLES DE DISEÑO CON SOPORTE DE TEMAS --- */
+        :root[data-theme="dark"] {
+            --bg-color: #050608;
+            --surface-color: rgba(13, 15, 22, 0.96);
+            --text-main: #F5F6F8;
+            --text-muted: #8E919A;
+            --accent-glow-1: #00ff66; /* Verde Esmeralda Cyberpunk */
+            --accent-glow-2: #00e5ff; /* Cyan Eléctrico */
+            --border-color: rgba(255, 255, 255, 0.07);
+            --code-bg: #0A0C12;
+            --glass-fill: rgba(255, 255, 255, 0.03);
+            --glass-stroke: rgba(255, 255, 255, 0.14);
+        }
+
+        :root[data-theme="light"] {
+            --bg-color: #F4F6F9;
+            --surface-color: rgba(255, 255, 255, 0.94);
+            --text-main: #12141C;
+            --text-muted: #626673;
+            --accent-glow-1: #00cc52; 
+            --accent-glow-2: #00b8cc; 
+            --border-color: rgba(0, 0, 0, 0.08);
+            --code-bg: #EAEFF5;
+            --glass-fill: rgba(0, 0, 0, 0.01);
+            --glass-stroke: rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- GRADIENTES ORGÁNICOS DE FONDO PARA LA REFRACCIÓN --- */
+        .background-blob-1 {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-glow-1) 0%, transparent 65%);
+            opacity: 0.18;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .background-blob-2 {
+            position: absolute;
+            top: 40%;
+            right: 10%;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, var(--accent-glow-2) 0%, transparent 65%);
+            opacity: 0.15;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        /* BOTÓN INTERCAMBIADOR DE TEMA EXCLUSIVO AXIOM */
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            background: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        main {
+            max-width: 900px;
+            width: 100%;
+            margin: auto;
+            padding: 20px 24px 80px 24px;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .category-tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: 52px;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: var(--text-muted);
+            line-height: 1.65;
+            max-width: 620px;
+            margin: 0 auto 48px auto;
+            font-weight: 300;
+        }
+
+        /* --- CONTENEDOR ESCENA DEL CRISTAL REFRRACTIVO --- */
+        .glass-scene {
+            position: relative;
+            width: 100%;
+            max-width: 750px;
+            margin: 0 auto 48px auto;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        .glass-bg {
+            background-color: var(--surface-color);
+            padding: 40px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            transition: background-color 0.5s ease;
+        }
+
+        .glass-wrapper {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            background: rgba(128, 128, 128, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--text-main);
+            background: rgba(128, 128, 128, 0.1);
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid-inputs { grid-template-columns: 1fr; }
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .refine-btn {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border: 1px solid var(--text-main);
+            padding: 14px 28px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .refine-btn:hover {
+            background-color: transparent;
+            color: var(--text-main);
+        }
+
+        .output-box {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            position: relative;
+            transition: background-color 0.5s ease;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .copy-btn:hover { color: var(--text-main); }
+
+        pre { overflow-x: auto; margin: 0; }
+        code {
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            opacity: 0.85;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            padding: 18px 40px;
+            font-size: 11px;
+            font-weight: 500;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            border-color: var(--text-main);
+            background-color: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        footer {
+            padding: 40px 24px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-blob-1"></div>
+    <div class="background-blob-2"></div>
+
+    <header>
+        <div class="logo">Axiom Systems</div>
+        <button class="theme-toggle" id="themeToggle">Light Mode</button>
+    </header>
+
+    <main>
+        <span class="category-tag">Localized Intelligence Framework</span>
+        <h1>Axiom Nomad-Scout</h1>
+        <p class="subtitle">Run isolated OSINT intelligence compilation locally. Map indicators, structure targets, and generate tactical reports instantly under complete client sovereignty.</p>
+
+        <div class="glass-scene" id="glassScene">
+            
+            <div class="glass-bg">
+                <div class="grid-inputs">
+                    <div>
+                        <label for="targetQuery">Intelligence Target / Topic</label>
+                        <input type="text" id="targetQuery" placeholder="Enter keyword or architecture vector (e.g., 'Micro-SaaS RAG Agents')">
+                    </div>
+                    <div>
+                        <label for="scoutMode">Scan Matrix Protocol</label>
+                        <select id="scoutMode">
+                            <option value="trends">Trend Analysis Matrix</option>
+                            <option value="security">Security Audit Payload</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button class="refine-btn" id="scoutBtn">Execute Local Scan</button>
+                </div>
+
+                <div class="output-box">
+                    <div class="output-header">
+                        <label>Tactical Mission Output</label>
+                        <button class="copy-btn" id="copyBtn">Copy Dispatch</button>
+                    </div>
+                    <pre><code id="outputCode">// Terminal initialized. Awaiting secure intelligence query instructions...</code></pre>
+                </div>
+            </div>
+
+            <div class="glass-wrapper" id="glassWrapper"></div>
+            
+        </div>
+
+        <a href="https://github.com/echeparesmanuel36-design/axiom-nomad-scout" class="cta-button">Access Source Code</a>
+    </main>
+
+    <footer>
+        © 2026 Axiom Systems. Engineered under strict client sovereignty.
+    </footer>
+    <script>
+        // --- 1. CONFIGURACIÓN DEL MOTOR RECOLECTOR (Axiom Nomad Engine) ---
+        const TACTICAL_TEMPLATES = {
+            trends: {
+                header: "◤ NOMAD-SCOUT TACTICAL REPORT: TREND ANALYSIS",
+                metrics: "Data integrity: 98.7% | Sources: Open Web Indice | Node: Localhost",
+                summary: "Se detecta un incremento masivo de interés en arquitecturas locales y agentes offline. El mercado penaliza la latencia de las APIs tradicionales y premia la soberanía de datos binarios."
+            },
+            security: {
+                header: "◤ NOMAD-SCOUT TACTICAL REPORT: SECURITY AUDIT",
+                metrics: "Threat Level: Nominal | Protocol: Stealth Scraping | Node: Localhost",
+                summary: "Análisis completado. Los vectores de ataque actuales se centran en la fuga de metadatos de las APIs en la nube. Se recomienda el aislamiento de credenciales y el uso de payloads locales encapsulados."
+            }
+        };
+
+        const targetQueryInput = document.getElementById('targetQuery');
+        const scoutModeSelect = document.getElementById('scoutMode');
+        const scoutBtn = document.getElementById('scoutBtn');
+        const outputCode = document.getElementById('outputCode');
+        const copyBtn = document.getElementById('copyBtn');
+
+        scoutBtn.addEventListener('click', () => {
+            const queryText = targetQueryInput.value.trim();
+            if (!queryText) {
+                outputCode.innerText = "// Security breach: Enter a valid intelligence target or topic vector first.";
+                return;
+            }
+            const mode = scoutModeSelect.value;
+            const template = TACTICAL_TEMPLATES[mode];
+            const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            
+            // Compilación del reporte militar en tiempo real
+            const fullReport = `${template.header}\n==================================================\nTIMESTAMP: ${timestamp}\nQUERY TARGET: "${queryText.toUpperCase()}"\n${template.metrics}\n==================================================\n\n[ANALYSIS SUMMARY]:\n${template.summary}\n\n[RECOMMENDED ACTION MATRIX]:\n1. Aislar dependencias externas de la infraestructura central.\n2. Ejecutar módulos de control en entornos de memoria local.\n3. Desplegar plantillas de visualización con refracción para camuflaje de UI.\n\nSTATUS: CORE DISPATCH SECURED.`;
+            
+            outputCode.innerText = fullReport;
+        });
+
+        // Portapapeles Premium
+        copyBtn.addEventListener('click', () => {
+            const codeText = outputCode.innerText;
+            if (codeText.startsWith('//')) return;
+            navigator.clipboard.writeText(codeText).then(() => {
+                copyBtn.innerText = 'Copied!';
+                setTimeout(() => { copyBtn.innerText = 'Copy Dispatch'; }, 2000);
+            });
+        });
+
+        // --- 2. GESTOR EXCLUSIVO DE MODO CLARO / OSCURO (Ley Axiom) ---
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeToggle.innerText = 'Dark Mode';
+            } else {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.innerText = 'Light Mode';
+            }
+            // Forzamos al cristal a refrescarse matemáticamente para equilibrar contrastes del nuevo modo
+            applyAaveGlass();
+        });
+
+
+        // --- 3. NÚCLEO MATEMÁTICO DE REFRACCIÓN DE CRISTAL (AaveStyle Engine) ---
+        function applyAaveGlass() {
+            const wrapper = document.getElementById('glassWrapper');
+            const scene = document.getElementById('glassScene');
+            
+            const w = scene.offsetWidth;
+            const h = scene.offsetHeight;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w; 
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, 0, w, h);
+            
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = Math.min(w, h) * 0.46;
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    if (dist < radius) {
+                        const i = (y * w + x) * 4;
+                        // Mutación cromática de refracción física sobre el canvas oculto
+                        imgData.data[i]   = 128 + (dx / radius) * 115; 
+                        imgData.data[i+1] = 128 + (dy / radius) * 115; 
+                        imgData.data[i+2] = 128;
+                        imgData.data[i+3] = 255;
+                    }
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+            const mapUrl = canvas.toDataURL();
+
+            // Detectamos si estamos en tema claro u oscuro para adaptar sutilmente la opacidad del marco
+            const theme = htmlElement.getAttribute('data-theme');
+            const rectFill = theme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.01)';
+            const rectStroke = theme === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.10)';
+
+            // Inyección del SVG refractivo interactivo acelerado por GPU
+            wrapper.innerHTML = `
+                <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display: block; position: absolute; inset:0;">
+                    <defs>
+                        <filter id="nomadGlassFilter" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+                            <feImage href="${mapUrl}" result="displacementMap"/>
+                            <feDisplacementMap in="SourceGraphic" in2="displacementMap" scale="38" xChannelSelector="R" yChannelSelector="G"/>
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+                            <feComposite in="blur" in2="SourceGraphic" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+                        </filter>
+                    </defs>
+                    <rect width="${w}" height="${h}" rx="40" ry="40" 
+                          fill="${rectFill}" 
+                          filter="url(#nomadGlassFilter)"
+                          stroke="${rectStroke}" 
+                          stroke-width="1.5"/>
+                </svg>
+            `;
+        }
+
+        // Eventos de ejecución controlada de la interfaz
+        window.addEventListener('DOMContentLoaded', applyAaveGlass);
+        window.addEventListener('resize', applyAaveGlass);
+    </script>
+</body>
+</html>
