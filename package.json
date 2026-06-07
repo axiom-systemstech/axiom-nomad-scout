@@ -1,0 +1,8 @@
+{
+  "name": "axiom-nomad-scout",
+  "version": "1.0.0",
+  "description": "Ultra-lightweight client-side intelligence gathering framework",
+  "main": "scout.js",
+  "type": "module",
+  "dependencies": {}
+}
