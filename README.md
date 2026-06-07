@@ -16,3 +16,10 @@ import { compileReport } from './scout.js';
 const rawReport = compileReport("SaaS Micro-Architectures", "trends");
 console.log(rawReport);
 ```
+## 🛠️ Deployment
+1.​Clone the intelligence module into your local setup.
+
+2.​Initialize the isolated runtime environment:
+```bash
+npm install
+```
