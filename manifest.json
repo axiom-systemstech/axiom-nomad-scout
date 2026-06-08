@@ -1,0 +1,22 @@
+{
+  "name": "Axiom Nomad-Scout — Local Intelligence",
+  "short_name": "Nomad-Scout",
+  "description": "OSINT y compilación de inteligencia 100% local. Análisis táctico bajo soberanía total del cliente.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050608",
+  "theme_color": "#050608",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
